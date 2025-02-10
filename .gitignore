@@ -239,5 +239,10 @@ data/roboto*.*
 android/.idea/**
 
 libs/vulkan/*.so
+cmake-build-debug/*
 
 .vscode/*
+.idea/*
+
+#old examples
+examples/*
