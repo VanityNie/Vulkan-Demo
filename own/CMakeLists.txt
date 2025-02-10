@@ -6,13 +6,16 @@ function(buildExample EXAMPLE_NAME)
 	SET(EXAMPLE_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/${EXAMPLE_NAME})
 	message(STATUS "Generating project file for example in ${EXAMPLE_FOLDER}")
 	# Main
-	file(GLOB SOURCE *.cpp ${BASE_HEADERS} ${EXAMPLE_FOLDER}/*.cpp)
-	SET(MAIN_CPP ${EXAMPLE_FOLDER}/${EXAMPLE_NAME}.cpp)
+	file(GLOB SOURCE_CXX "${EXAMPLE_FOLDER}/*.cpp")
+	file(GLOB SOURCE_HEADERS "${EXAMPLE_FOLDER}/*.h")
+	SET(MAIN_CPP "${EXAMPLE_FOLDER}/${EXAMPLE_NAME}.cpp")
 	if(EXISTS ${EXAMPLE_FOLDER}/main.cpp)
-		SET(MAIN_CPP ${EXAMPLE_FOLDER}/main.cpp)
+		SET(MAIN_CPP "${EXAMPLE_FOLDER}/main.cpp")
 	ENDIF()
+	# Additional sources
+	SET(SOURCE ${SOURCE_CXX} ${SOURCE_HEADERS} ${BASE_HEADERS})
 	if(EXISTS ${EXAMPLE_FOLDER}/${EXAMPLE_NAME}.h)
-		SET(MAIN_HEADER ${EXAMPLE_FOLDER}/${EXAMPLE_NAME}.h)
+		SET(MAIN_HEADER "${EXAMPLE_FOLDER}/${EXAMPLE_NAME}.h")
 	ENDIF()
 	# imgui example requires additional source files
 	IF(${EXAMPLE_NAME} STREQUAL "imgui")
@@ -30,21 +33,25 @@ function(buildExample EXAMPLE_NAME)
 	file(GLOB SHADERS_HLSL "${SHADER_DIR_HLSL}/*.vert" "${SHADER_DIR_HLSL}/*.frag" "${SHADER_DIR_HLSL}/*.comp" "${SHADER_DIR_HLSL}/*.geom" "${SHADER_DIR_HLSL}/*.tesc" "${SHADER_DIR_HLSL}/*.tese" "${SHADER_DIR_HLSL}/*.mesh" "${SHADER_DIR_HLSL}/*.task" "${SHADER_DIR_HLSL}/*.rgen" "${SHADER_DIR_HLSL}/*.rchit" "${SHADER_DIR_HLSL}/*.rmiss" "${SHADER_DIR_HLSL}/*.rcall" "${SHADER_DIR_HLSL}/*.rahit" "${SHADER_DIR_HLSL}/*.rint")
 	set(SHADER_DIR_SLANG "../shaders/slang/${EXAMPLE_NAME}")
 	file(GLOB SHADERS_SLANG "${SHADER_DIR_SLANG}/*.slang")
+
 	source_group("Shaders\\GLSL" FILES ${SHADERS_GLSL})
 	source_group("Shaders\\HLSL" FILES ${SHADERS_HLSL})
 	source_group("Shaders\\SLANG" FILES ${SHADERS_SLANG})
+
 	# Add optional readme / tutorial
 	file(GLOB README_FILES "${EXAMPLE_FOLDER}/*.md")
+
 	if(WIN32)
 		add_executable(${EXAMPLE_NAME} WIN32 ${MAIN_CPP} ${SOURCE} ${MAIN_HEADER} ${SHADERS_GLSL} ${SHADERS_HLSL} ${SHADERS_SLANG} ${README_FILES})
 		target_link_libraries(${EXAMPLE_NAME} base ${Vulkan_LIBRARY} ${WINLIBS})
-	else(WIN32)
+	else()
 		add_executable(${EXAMPLE_NAME} ${MAIN_CPP} ${SOURCE} ${MAIN_HEADER} ${SHADERS_GLSL} ${SHADERS_HLSL} ${SHADERS_SLANG} ${README_FILES})
-		target_link_libraries(${EXAMPLE_NAME} base )
-	endif(WIN32)
+		target_link_libraries(${EXAMPLE_NAME} base)
+	endif()
 
 	file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 	set_target_properties(${EXAMPLE_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+
 	if(${EXAMPLE_NAME} STREQUAL "texture3d")
 		if(APPLE)
 			# SRS - Use MacPorts paths as default since the same on x86 and Apple Silicon, can override for homebrew on cmake command line
@@ -83,12 +90,12 @@ endfunction(buildExample)
 function(buildExamples)
 	foreach(EXAMPLE ${EXAMPLES})
 		buildExample(${EXAMPLE})
-	endforeach(EXAMPLE)
+	endforeach()
 endfunction(buildExamples)
 
 set(EXAMPLES
-	bloom
-
-)
+		bloom
+		rayRender
+		)
 
 buildExamples()
